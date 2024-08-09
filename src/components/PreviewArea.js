@@ -61,7 +61,7 @@ export default function PreviewArea({ position, setPosition, rotation }) {
         draggable
         width={510}
         height={382}
-        style={{ height: "306px", width: "408px" }}
+        // style={{ height: "306px", width: "408px" }}
         onMouseMove={doDrag}
         onMouseUp={endDrag}
         onMouseDown={startDrag}
