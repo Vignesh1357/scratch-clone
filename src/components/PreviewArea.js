@@ -1,7 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
-import catSprite from "./CatSprite";
+import catSprite, {
+  catSpriteHello,
+  costume2,
+  costume2Hello,
+} from "./CatSprite";
 
-export default function PreviewArea({ position, setPosition, rotation }) {
+export default function PreviewArea({
+  position,
+  setPosition,
+  rotation,
+  loadHelloSVG,
+  costume,
+  changeSizeby,
+  reload,
+  setReload,
+}) {
   const canvasRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startOffset, setStartOffset] = useState({ x: 0, y: 0 });
@@ -11,10 +24,31 @@ export default function PreviewArea({ position, setPosition, rotation }) {
     const ctx = canvas.getContext("2d");
 
     drawSVGOnCanvas(ctx, position.x, position.y, rotation);
-  }, [position, rotation]);
+  }, [position, rotation, loadHelloSVG, costume]);
 
-  const drawSVGOnCanvas = (ctx, x, y, angle) => {
-    const svg = catSprite;
+  useEffect(() => {
+    if (reload) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+
+      drawSVGOnCanvas(ctx, position.x, position.y, rotation, changeSizeby);
+    }
+  }, [reload]);
+
+  const drawSVGOnCanvas = (ctx, x, y, angle, size) => {
+    let svg = catSprite;
+    size = size || 0;
+    if (!costume) {
+      if (loadHelloSVG) {
+        svg = catSpriteHello;
+      }
+    } else {
+      if (loadHelloSVG) {
+        svg = costume2Hello;
+      } else {
+        svg = costume2;
+      }
+    }
 
     const img = new Image();
     const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
@@ -25,9 +59,34 @@ export default function PreviewArea({ position, setPosition, rotation }) {
       ctx.save();
       ctx.translate(x + img.width / 2, y + img.height / 2);
       ctx.rotate((angle * Math.PI) / 180);
-      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      let scaledWidth;
+      let scaledHeight;
+      if (costume) {
+        scaledWidth = img.width * 0.35;
+        scaledHeight = img.height * 0.35;
+        ctx.drawImage(
+          img,
+          -(scaledWidth / 2),
+          -(scaledHeight / 2),
+          scaledWidth + size,
+          scaledHeight + size
+        );
+      } else {
+        // setPosition({ x: 50, y: 50 });
+        scaledWidth = img.width;
+        scaledHeight = img.height;
+        ctx.drawImage(
+          img,
+          -(scaledWidth / 2),
+          -(scaledHeight / 2),
+          scaledWidth * 2 + size,
+          scaledHeight * 3 + size
+        );
+      }
+
       ctx.restore();
       URL.revokeObjectURL(url);
+      setReload(false);
     };
     img.src = url;
   };

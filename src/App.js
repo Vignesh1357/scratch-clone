@@ -4,22 +4,43 @@ import MidArea from "./components/MidArea";
 import PreviewArea from "./components/PreviewArea";
 
 export default function App() {
-  const [position, setPosition] = useState({ x: 50, y: 50 });
+  const [position, setPosition] = useState({});
   const [rotation, setRotation] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [loadHelloSVG, setLoadHelloSVG] = useState(false);
+  const [helloSVGTimer, setHelloSVGTimer] = useState();
+  const [costume, setCostume] = useState(false);
+  const [changeSizeby, setChangeSizeby] = useState(0);
+  const [reload, setReload] = useState(false);
 
-  const handleMove = () => {
+  useEffect(() => {
+    if (loadHelloSVG) {
+      setTimeout(() => {
+        setLoadHelloSVG(false);
+      }, helloSVGTimer);
+    }
+  }, [helloSVGTimer]);
+
+  useEffect(() => {
+    if (costume) {
+      setPosition({ x: -200, y: -100 });
+    } else {
+      setPosition({ x: 50, y: 50 });
+    }
+  }, [costume]);
+
+  const handleMove = (steps) => {
     const angleInRadians = (rotation * Math.PI) / 180;
     setPosition((prevPosition) => ({
-      x: prevPosition.x + 10 * Math.cos(angleInRadians),
-      y: prevPosition.y + 10 * Math.sin(angleInRadians),
+      x: prevPosition.x + steps * Math.cos(angleInRadians),
+      y: prevPosition.y + steps * Math.sin(angleInRadians),
     }));
   };
 
-  const handleRotate = (direction) => {
+  const handleRotate = (direction, angle) => {
     setRotation((prevRotation) =>
-      direction === "right" ? prevRotation + 15 : prevRotation - 15
+      direction === "right" ? prevRotation + angle : prevRotation - angle
     );
-    console.log("Rotate 15", direction);
   };
 
   const getRandomArbitrary = (min, max) => {
@@ -33,9 +54,66 @@ export default function App() {
     });
   };
 
-  useEffect(() => {
-    console.log(position);
-  }, [position]);
+  const animateMovement = (startX, startY, endX, endY, duration) => {
+    const startTime = performance.now();
+
+    const animate = (currentTime) => {
+      const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
+      const progress = Math.min(elapsedTime / duration, 1);
+
+      const newX = startX + (endX - startX) * progress;
+      const newY = startY + (endY - startY) * progress;
+
+      setPosition({ x: newX, y: newY });
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setIsAnimating(false);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  };
+
+  const glide = (seconds, x, y) => {
+    if (!x && !y) {
+      x = getRandomArbitrary(0, 480);
+      y = getRandomArbitrary(0, 300);
+    }
+    if (!isAnimating) {
+      setIsAnimating(true);
+      animateMovement(position.x, position.y, x, y, seconds);
+    }
+  };
+
+  const loadHello = (seconds) => {
+    setLoadHelloSVG(true);
+    if (seconds) {
+      const ms = seconds * 1000;
+      setHelloSVGTimer(ms);
+    }
+  };
+
+  const handleCostume = () => {
+    setChangeSizeby(0);
+    setCostume(!costume);
+  };
+
+  const clearGraphics = () => {
+    setLoadHelloSVG(false);
+    setChangeSizeby(0);
+    setReload(true);
+  };
+
+  const changeSize = (size) => {
+    setChangeSizeby((prev) => {
+      console.log(size, prev);
+      setReload(true);
+      return parseFloat(size) + prev;
+    });
+  };
+
   return (
     <div className="bg-blue-100 pt-6 font-sans">
       <div className="h-screen overflow-hidden flex flex-row  ">
@@ -44,6 +122,13 @@ export default function App() {
             handleMove={handleMove}
             handleRotate={handleRotate}
             handleRandomPosition={handleRandomPosition}
+            position={position}
+            setPosition={setPosition}
+            glide={glide}
+            loadHello={loadHello}
+            clearGraphics={clearGraphics}
+            handleCostume={handleCostume}
+            changeSize={changeSize}
           />{" "}
           <MidArea />
         </div>
@@ -52,6 +137,11 @@ export default function App() {
             position={position}
             setPosition={setPosition}
             rotation={rotation}
+            loadHelloSVG={loadHelloSVG}
+            costume={costume}
+            changeSizeby={changeSizeby}
+            reload={reload}
+            setReload={setReload}
           />
         </div>
       </div>
