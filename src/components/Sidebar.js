@@ -12,6 +12,7 @@ export default function Sidebar({
   clearGraphics,
   handleCostume,
   changeSize,
+  replay,
 }) {
   useEffect(() => {
     document.getElementsByName("x-pos")[0].value = position.x;
@@ -36,6 +37,18 @@ export default function Sidebar({
       </div>
       <div className="flex flex-row flex-wrap bg-yellow-500 text-white px-2 py-1 my-2 text-sm cursor-pointer">
         {"When this sprite clicked"}
+      </div>
+      <div
+        className="flex flex-row flex-wrap bg-yellow-500 text-white px-2 py-1 my-2 text-sm cursor-pointer"
+        onClick={() => replay(document.getElementsByName("replay")[0].value)}
+      >
+        {"Replay, action number : "}
+        <input
+          style={{ width: "30px", color: "black" }}
+          name="replay"
+          onClick={(e) => e.stopPropagation()}
+          defaultValue={1}
+        />
       </div>
       <div className="font-bold"> {"Motion"} </div>
       <div
